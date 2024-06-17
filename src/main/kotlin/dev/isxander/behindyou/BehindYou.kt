@@ -24,7 +24,6 @@ import kotlin.math.abs
     clientSideOnly = true,
     modLanguageAdapter = "cc.polyfrost.oneconfig.utils.KotlinLanguageAdapter"
 )
-
 object BehindYou {
     const val MODID = "@ID@"
     const val NAME = "@NAME@"
@@ -66,7 +65,9 @@ object BehindYou {
                 mc.gameSettings.thirdPersonView = 0
                 mc.renderGlobal.setDisplayListEntitiesDirty()
             }
-            animation = DummyAnimation(if (isPatcher && PatcherConfig.parallaxFix) -0.05f else 0.1f)
+            if (animation !is DummyAnimation || !(animation.get(0f) == -0.05f || animation.get(0f) == 0.1f)) {
+                animation = DummyAnimation(if (isPatcher && PatcherConfig.parallaxFix) -0.05f else 0.1f)
+            }
         } else {
             if (end != 0.3f) end = distance
             if (animation.get() > distance) {

@@ -21,4 +21,15 @@ public class MinecraftMixin {
             instance.thirdPersonView = value;
         }
     }
+
+    @Redirect(method = "runGameLoop", at = @At(value = "FIELD", target = "Lnet/minecraft/client/settings/GameSettings;thirdPersonView:I", opcode = Opcodes.PUTFIELD))
+    private void override2(GameSettings instance, int value) {
+        if (BehindYouConfig.INSTANCE.enabled) {
+            int perspective = value;
+            if (perspective > 2) perspective = 0;
+            BehindYou.INSTANCE.setPerspective(perspective);
+        } else {
+            instance.thirdPersonView = value;
+        }
+    }
 }

@@ -57,6 +57,11 @@ object BehindYou {
     fun tick(event: TickEvent.RenderTickEvent) {
         if (event.phase != TickEvent.Phase.END) return
         onTick()
+        var thirdPersonView = mc.gameSettings.thirdPersonView
+        if (thirdPersonView > 2) thirdPersonView = 0
+        if (BehindYouConfig.enabled && thirdPersonView != realPerspective) {
+            setPerspective(thirdPersonView)
+        }
     }
 
     fun level(): Float {
@@ -85,6 +90,10 @@ object BehindYou {
     }
 
     private fun onTick() {
+        if (!BehindYouConfig.enabled) {
+            resetAll()
+            return
+        }
         if (UScreen.currentScreen != null || mc.theWorld == null || !UPlayer.hasPlayer()) {
             if (!BehindYouConfig.frontKeybindMode || !BehindYouConfig.backKeybindMode) {
                 resetAll()

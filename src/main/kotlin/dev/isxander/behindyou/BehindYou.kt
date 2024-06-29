@@ -44,6 +44,7 @@ object BehindYou {
     var end = 0f
     var distance = 0f
     var animation: Animation = DummyAnimation(0f)
+    private var lastParallaxFix = false
     private var isPatcher = false
 
     @Mod.EventHandler
@@ -57,21 +58,22 @@ object BehindYou {
     fun tick(event: TickEvent.RenderTickEvent) {
         if (event.phase != TickEvent.Phase.END) return
         onTick()
-        var thirdPersonView = mc.gameSettings.thirdPersonView
-        if (thirdPersonView > 2) thirdPersonView = 0
+        val thirdPersonView = mc.gameSettings.thirdPersonView
         if (BehindYouConfig.enabled && thirdPersonView != realPerspective) {
             setPerspective(thirdPersonView)
         }
     }
 
     fun level(): Float {
+        val parallaxFix = isPatcher && PatcherConfig.parallaxFix
         if (realPerspective == 0) {
             if (mc.gameSettings.thirdPersonView != 0) {
                 mc.gameSettings.thirdPersonView = 0
                 mc.renderGlobal.setDisplayListEntitiesDirty()
             }
-            if (animation !is DummyAnimation || !(animation.get(0f) == -0.05f || animation.get(0f) == 0.1f)) {
-                animation = DummyAnimation(if (isPatcher && PatcherConfig.parallaxFix) -0.05f else 0.1f)
+            if (animation !is DummyAnimation || !(animation.get(0f) == -0.05f || animation.get(0f) == 0.1f) || lastParallaxFix != parallaxFix) {
+                lastParallaxFix = parallaxFix
+                animation = DummyAnimation(if (parallaxFix) -0.05f else 0.1f)
             }
         } else {
             if (end != 0.3f) end = distance

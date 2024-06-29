@@ -54,19 +54,19 @@ object BehindYouConfig : Config(
     var speed = 1f
 
     @Switch(
-        name = "Change FOV When Clicking Keybind",
+        name = "Modify FOV",
     )
     var changeFOV = false
 
     @Slider(
-        name = "FOV For Backview Keybind",
+        name = "Backview FOV",
         min = 30F,
         max = 110F
     )
     var backFOV = 100
 
     @Slider(
-        name = "Change FOV For Frontview Keybind",
+        name = "Frontview FOV",
         min = 30F,
         max = 110F
     )
@@ -75,5 +75,7 @@ object BehindYouConfig : Config(
     init {
         initialize()
         addDependency("speed", "animation")
+        addDependency("backFOV", "changeFOV")
+        addDependency("frontFOV", "changeFOV")
     }
 }

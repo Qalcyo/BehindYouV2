@@ -1,14 +1,14 @@
 {
   "compatibilityLevel": "JAVA_8",
   "minVersion": "0.7",
-  "package": "dev.isxander.behindyou.mixin",
+  "package": "org.polyfrost.behindyou.mixin",
   "refmap": "mixins.behindyouv3.refmap.json",
   "injectors": {
     "maxShiftBy": 5
   },
   "verbose": true,
   "client": [
-    "EntityRendererMixin",
-    "MinecraftMixin"
+    "org.polyfrost.behindyou.mixin.EntityRendererMixin",
+    "org.polyfrost.behindyou.mixin.MinecraftMixin"
   ]
 }

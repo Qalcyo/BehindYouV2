@@ -34,7 +34,7 @@ blossom {
 version = mod_version
 // Sets the group, make sure to change this to your own. It can be a website you own backwards or your GitHub username.
 // e.g. com.github.<your username> or com.<your domain>
-group = "dev.isxander"
+group = "org.polyfrost"
 
 // Sets the name of the output jar (the one you put in your mods folder and send to other people)
 // It outputs all versions of the mod into the `build` directory.
@@ -84,13 +84,20 @@ sourceSets {
 
 // Adds the Polyfrost maven repository so that we can get the libraries necessary to develop the mod.
 repositories {
+    maven("https://repo.polyfrost.org/snapshots")
     maven("https://repo.polyfrost.org/releases")
 }
 
 // Configures the libraries/dependencies for your mod.
 dependencies {
     // Adds the OneConfig library, so we can develop with it.
-    modCompileOnly("cc.polyfrost:oneconfig-$platform:0.2.2-alpha+")
+    val oneconfig = "1.0.0-alpha.16"
+    implementation("org.polyfrost.oneconfig:config-impl:$oneconfig")
+    implementation("org.polyfrost.oneconfig:commands:$oneconfig")
+    implementation("org.polyfrost.oneconfig:events:$oneconfig")
+    implementation("org.polyfrost.oneconfig:ui:$oneconfig")
+    implementation("org.polyfrost.oneconfig:internal:$oneconfig")
+    modImplementation("org.polyfrost.oneconfig:$platform:$oneconfig")
 
     modRuntimeOnly("me.djtheredstoner:DevAuth-${if (platform.isFabric) "fabric" else if (platform.isLegacyForge) "forge-legacy" else "forge-latest"}:1.1.2")
 

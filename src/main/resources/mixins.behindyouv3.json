@@ -8,7 +8,6 @@
   },
   "verbose": true,
   "client": [
-    "EntityRendererMixin",
-    "MinecraftMixin"
+    "EntityRendererMixin"
   ]
 }

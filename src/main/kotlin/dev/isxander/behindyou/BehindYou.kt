@@ -12,6 +12,7 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.FMLInitializationEvent
+import net.minecraftforge.fml.common.eventhandler.EventPriority
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import java.io.File
@@ -54,12 +55,13 @@ object BehindYou {
         CommandManager.INSTANCE.registerCommand(BehindYouCommand())
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     fun tick(event: TickEvent.RenderTickEvent) {
-        if (event.phase != TickEvent.Phase.END) return
+        if (event.phase != TickEvent.Phase.START) return
         onTick()
         val thirdPersonView = mc.gameSettings.thirdPersonView
         if (BehindYouConfig.enabled && thirdPersonView != realPerspective) {
+            if (thirdPersonView == 0) mc.gameSettings.thirdPersonView = realPerspective
             setPerspective(thirdPersonView)
         }
     }

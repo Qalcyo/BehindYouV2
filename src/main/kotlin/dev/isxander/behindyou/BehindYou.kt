@@ -192,7 +192,8 @@ object BehindYou {
         if (vPerspective == value) return
         previousPerspective = vPerspective
         vPerspective = value
-
+        if (backToggled && value != 2) backToggled = false
+        if (frontToggled && value != 1) frontToggled = false
         if (value == 0) {
             end = 0.3f
             if (!BehindYouConfig.animation) {

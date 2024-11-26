@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "${id}",
-  "name": "${name}",
-  "version": "${version}",
+  "id": "${mod_id}",
+  "name": "${mod_name}",
+  "version": "${mod_version}",
   "description": "Look behind you with ease!",
   "authors": [
     "Polyfrost (isXander)"
@@ -24,7 +24,7 @@
   "environment": "client",
   "depends": {
     "onecore": "*",
-    "minecraft": "${mcVersionStr}",
-    "java": ">=${java}"
+    "minecraft": "${mc_version}",
+    "java": ">=${java_version}"
   }
 }

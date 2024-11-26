@@ -3,38 +3,44 @@ package org.polyfrost.behindyou.config
 import org.polyfrost.behindyou.BehindYou
 import org.polyfrost.oneconfig.api.config.v1.Config
 import org.polyfrost.oneconfig.api.config.v1.annotations.*
-import org.polyfrost.oneconfig.api.ui.v1.keybind.KeybindHelper
+import org.polyfrost.oneconfig.api.ui.v1.keybind.KeybindManager
+import org.polyfrost.polyui.input.KeybindHelper
 import org.polyfrost.universal.UKeyboard
 
 object BehindYouConfig : Config("behindyouv3.json", "/behindyou_dark.svg", "BehindYouV3", Category.QOL) {
 
+    @Switch(
+        title = "Enabled"
+    )
+    var enabled = true
+
     @Keybind(
         title = "Frontview Keybind"
     )
-    var frontKeybind = KeybindHelper.builder().keys(UKeyboard.KEY_NONE).does(BehindYou::frontDown).register()
+    var frontKeybind = KeybindHelper.builder().keys(UKeyboard.KEY_Y).does { BehindYou.frontDown = it }.build()
 
     @RadioButton(
         title = "Frontview Keybind Handle Mode",
         options = ["Hold", "Toggle"]
     )
-    var frontKeybindMode = false
+    var frontKeybindMode = 0
 
     @Keybind(
         title = "Backview Keybind"
     )
-    var backKeybind = KeybindHelper.builder().keys(UKeyboard.KEY_NONE).does(BehindYou::backDown).register()
+    var backKeybind = KeybindHelper.builder().keys(UKeyboard.KEY_U).does { BehindYou.backDown = it }.build()
 
     @RadioButton(
         title = "Backview Keybind Handle Mode",
         options = ["Hold", "Toggle"]
     )
-    var backKeybindMode = false
+    var backKeybindMode = 0
 
     @RadioButton(
         title = "Back To",
         options =  ["Previous", "First"]
     )
-    var backToFirst = true
+    var backToFirst = 1
 
     @Checkbox(
         title = "Camera Animations"
@@ -70,5 +76,8 @@ object BehindYouConfig : Config("behindyouv3.json", "/behindyou_dark.svg", "Behi
         addDependency("speed", "animation")
         addDependency("backFOV", "changeFOV")
         addDependency("frontFOV", "changeFOV")
+
+        KeybindManager.registerKeybind(frontKeybind)
+        KeybindManager.registerKeybind(backKeybind)
     }
 }

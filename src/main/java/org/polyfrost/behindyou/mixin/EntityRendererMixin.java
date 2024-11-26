@@ -15,7 +15,7 @@ public class EntityRendererMixin {
 
     @Unique
     private boolean behindYouV3$enable() {
-        return BehindYouConfig.INSTANCE.enabled;
+        return BehindYouConfig.INSTANCE.getEnabled();
     }
 
     @Redirect(method = "orientCamera", at = @At(value = "FIELD", target = "Lnet/minecraft/client/settings/GameSettings;thirdPersonView:I", ordinal = 0))

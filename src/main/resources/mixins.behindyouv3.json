@@ -8,7 +8,7 @@
   },
   "verbose": true,
   "client": [
-    "org.polyfrost.behindyou.mixin.EntityRendererMixin",
-    "org.polyfrost.behindyou.mixin.MinecraftMixin"
+    "EntityRendererMixin",
+    "MinecraftMixin"
   ]
 }

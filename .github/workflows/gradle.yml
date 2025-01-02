@@ -1,33 +1,47 @@
-# This workflow will build a Java project with Gradle
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+# Build Workflow
 
-name: Java CI with Gradle
+name: Build with Gradle
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+  push:
+
+concurrency:
+  group: ${{ github.head_ref || format('{0}-{1}', github.ref, github.run_number) }}
+  cancel-in-progress: true
 
 jobs:
   build:
+    name: Build
 
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 8
-        uses: actions/setup-java@v2
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          java-version: '8'
-          distribution: 'adopt'
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-      - name: Setup Forge Workspace
-        run: ./gradlew setupCIWorkspace
-      - name: Build with Gradle
-        run: ./gradlew build
-      - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v2.2.3
+          fetch-depth: 10
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          path: ./build/libs/
+          java-version: 21
+          distribution: temurin
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            **/loom-cache
+            **/prebundled-jars
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Chmod Gradle
+        run: chmod +x ./gradlew
+
+      - name: Build
+        run: ./gradlew build --no-daemon

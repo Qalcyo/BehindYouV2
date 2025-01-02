@@ -17,4 +17,6 @@ preprocess {
             }
         }
     }
+
+    strictExtraMappings.set(true)
 }

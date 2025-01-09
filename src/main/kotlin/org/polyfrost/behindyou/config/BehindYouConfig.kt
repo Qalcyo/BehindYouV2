@@ -1,6 +1,5 @@
 package org.polyfrost.behindyou.config
 
-import org.polyfrost.behindyou.BehindYou
 import org.polyfrost.oneconfig.api.config.v1.Config
 import org.polyfrost.oneconfig.api.config.v1.annotations.*
 import org.polyfrost.oneconfig.api.ui.v1.keybind.KeybindManager
@@ -9,15 +8,10 @@ import org.polyfrost.universal.UKeyboard
 
 object BehindYouConfig : Config("behindyouv3.json", "/behindyou_dark.svg", "BehindYouV3", Category.QOL) {
 
-    @Switch(
-        title = "Enabled"
-    )
-    var enabled = true
-
     @Keybind(
         title = "Frontview Keybind"
     )
-    var frontKeybind = KeybindHelper.builder().keys(UKeyboard.KEY_Y).does { BehindYou.frontDown = it }.build()
+    var frontKeybind = KeybindHelper.builder().keys(UKeyboard.KEY_Y).does {  }.build()
 
     @RadioButton(
         title = "Frontview Keybind Handle Mode",
@@ -28,7 +22,7 @@ object BehindYouConfig : Config("behindyouv3.json", "/behindyou_dark.svg", "Behi
     @Keybind(
         title = "Backview Keybind"
     )
-    var backKeybind = KeybindHelper.builder().keys(UKeyboard.KEY_U).does { BehindYou.backDown = it }.build()
+    var backKeybind = KeybindHelper.builder().keys(UKeyboard.KEY_U).does {  }.build()
 
     @RadioButton(
         title = "Backview Keybind Handle Mode",
@@ -48,7 +42,7 @@ object BehindYouConfig : Config("behindyouv3.json", "/behindyou_dark.svg", "Behi
     var animation = false
 
     @Slider(
-        title = "Animation Speed",
+        title = "Animation Time (s)",
         min = 0.1f, max = 2f
     )
     var speed = 1f

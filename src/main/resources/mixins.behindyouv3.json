@@ -8,7 +8,7 @@
   },
   "verbose": true,
   "client": [
-    "EntityRendererMixin",
-    "MinecraftMixin"
+    "Mixin_EntityRendererSetFOVLevel",
+    "Mixin_MinecraftCapturePOVSet"
   ]
 }

@@ -1,25 +1,13 @@
 package org.polyfrost.behindyou
 
-import club.sk1er.patcher.config.PatcherConfig
-import org.polyfrost.universal.*
-import org.polyfrost.universal.wrappers.UPlayer
-import org.polyfrost.oneconfig.api.commands.v1.CommandManager
-import org.polyfrost.oneconfig.api.commands.v1.factories.annotated.*
 import net.minecraft.client.Minecraft
-import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.fml.common.Loader
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.FMLInitializationEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import net.minecraftforge.fml.common.gameevent.TickEvent
 import org.polyfrost.behindyou.config.BehindYouConfig
 import org.polyfrost.polyui.animate.Animation
 import org.polyfrost.polyui.animate.Animations
-import org.polyfrost.utils.v1.dsl.openUI
-import java.io.File
-import kotlin.math.abs
-
-val mc: Minecraft get() = UMinecraft.getMinecraft()
+import org.polyfrost.polyui.unit.seconds
+import org.polyfrost.universal.UMinecraft
 
 @Mod(
     modid = BehindYou.MODID,
@@ -33,217 +21,64 @@ object BehindYou {
     const val NAME = "@NAME@"
     const val VERSION = "@VER@"
 
-    var backDown = false
-    var frontDown = false
+    private var zAnimation: Animation = Animations.EaseOutQuart.create(0.5.seconds, 4f, 4f)
+    private var fovAnimation: Animation = Animations.EaseOutQuart.create(0.5.seconds, 90f, 90f)
+    val isFinished get() = zAnimation.isFinished
 
-    private var previousPerspective = 0
-    private var vPerspective = 0
-    private var previousFOV = 0f
-    var realPerspective = 0
+    var fov: Float
+        get() = Minecraft.getMinecraft().gameSettings.fovSetting
+        set(value) {
+            val mc = Minecraft.getMinecraft()
+            //mc.renderGlobal.setDisplayListEntitiesDirty()
+            mc.gameSettings.fovSetting = value
+        }
 
-    private var previousBackKey = false
-    private var backToggled = false
-    private var previousFrontKey = false
-    private var frontToggled = false
+    /**
+     * 0: normal
+     * 1: front
+     * 2: back
+     */
+    var perspective: Int
+        get() = Minecraft.getMinecraft().gameSettings.thirdPersonView
+        set(value) {
+            previousPerspective = perspective
+            val mc = Minecraft.getMinecraft()
+            //mc.renderGlobal.setDisplayListEntitiesDirty()
+            setTargetLevel(if (value == 0) 0.1f else 2f)
+            mc.gameSettings.thirdPersonView = value
+        }
+    var previousPerspective = perspective
+        private set
 
-    private var to = 0f
-    var distance = 0f
-    private var animation: Animation = DummyAnimation(0f)
-    private var lastParallaxFix = false
-    private var isPatcher = false
+
+    fun getLevel(zIn: Double, partialTicks: Float): Double {
+        if (!BehindYouConfig.enabled) return zIn
+        val deltaTime = partialTicks.toNanoseconds()
+        fov = fovAnimation.update(deltaTime)
+        return zAnimation.update(deltaTime).toDouble()
+    }
+
+    fun modifyAnimations(duration: Long, curve: Animations) {
+        zAnimation = curve.create(duration, zAnimation.value, zAnimation.to)
+        fovAnimation = curve.create(duration, fovAnimation.value, fovAnimation.to)
+    }
+
+    fun setTargetLevel(z: Float) {
+        zAnimation.to = z
+        zAnimation.from = zAnimation.value
+        zAnimation.reset()
+    }
+
+    fun toPrevious() {
+        perspective = previousPerspective
+
+    }
+
+    // partial ticks are a fraction (0..1) of a tick, which is 50ms.
+    fun Float.toNanoseconds() = (this * 50_000_000f).toLong()
 
     @Mod.EventHandler
     fun onInit(event: FMLInitializationEvent) {
-        isPatcher = Loader.isModLoaded("patcher")
-        MinecraftForge.EVENT_BUS.register(this)
-        CommandManager.registerCommand(BehindYouCommand())
-    }
 
-    @SubscribeEvent
-    fun ticks(event: TickEvent.RenderTickEvent) {
-        if (event.phase != TickEvent.Phase.END) return
-        onTick()
-        val thirdPersonView = mc.gameSettings.thirdPersonView
-        if (BehindYouConfig.enabled && thirdPersonView != realPerspective) {
-            setPerspective(thirdPersonView)
-        }
-    }
-
-    fun level(): Float {
-        val parallaxFix = isPatcher && PatcherConfig.parallaxFix
-        if (realPerspective == 0) {
-            if (mc.gameSettings.thirdPersonView != 0) {
-                mc.gameSettings.thirdPersonView = 0
-                mc.renderGlobal.setDisplayListEntitiesDirty()
-            }
-
-            if (animation !is DummyAnimation || !(animation.value == -0.05f || animation.value == 0.1f) || lastParallaxFix != parallaxFix) {
-                lastParallaxFix = parallaxFix
-                animation = DummyAnimation(if (parallaxFix) -0.05f else 0.1f)
-            }
-        } else {
-            println("distance: $distance")
-            if (to != 0.3f) {
-                to = distance
-                println("setting to: $to")
-            }
-
-            if (animation.value > distance) {
-                println("animation.value > distance")
-                animation = DummyAnimation(distance)
-            } else if (animation.to != to) {
-                val duration = if (BehindYouConfig.animation) {
-                    (100 * abs(animation.value - to) / BehindYouConfig.speed * 1_000_000).toLong()
-                } else {
-                    0L
-                }
-
-                println("duration: $duration")
-
-                animation = Animations.EaseOutQuart.create(
-                    durationNanos = duration,
-                    start = animation.value,
-                    end = to,
-                )
-            }
-        }
-
-        if (animation.isFinished && animation.to == 0.3f) {
-            mc.gameSettings.thirdPersonView = 0
-            realPerspective = 0
-            mc.renderGlobal.setDisplayListEntitiesDirty()
-        }
-
-        return animation.value
-    }
-
-    private fun onTick() {
-        if (!BehindYouConfig.enabled) {
-            resetAll()
-            return
-        }
-
-        if (UScreen.currentScreen != null || mc.theWorld == null || !UPlayer.hasPlayer()) {
-            if (BehindYouConfig.frontKeybindMode == 0 || BehindYouConfig.backKeybindMode == 0) {
-                resetAll()
-            }
-            return
-        }
-
-        if (BehindYouConfig.backToFirst == 1) previousPerspective = 0
-
-        if (backDown && frontDown) return
-
-        if (backDown != previousBackKey) {
-            previousBackKey = backDown
-
-            if (backDown) {
-                if (backToggled) {
-                    resetBack()
-                } else {
-                    if (frontToggled) {
-                        resetFront()
-                    }
-                    if (vPerspective != 2) enterBack() else resetBack()
-                }
-            } else if (BehindYouConfig.backKeybindMode == 0) {
-                resetBack()
-            }
-
-        } else if (frontDown != previousFrontKey) {
-            previousFrontKey = frontDown
-
-            if (frontDown) {
-                if (frontToggled) {
-                    resetFront()
-                } else {
-                    if (backToggled) {
-                        resetBack()
-                    }
-                    if (vPerspective != 1) enterFront() else resetFront()
-                }
-            } else if (BehindYouConfig.frontKeybindMode == 0) {
-                resetFront()
-            }
-
-        }
-    }
-
-    private fun enterBack() {
-        backToggled = true
-        previousFOV = getFOV()
-        setPerspective(2)
-        if (BehindYouConfig.changeFOV) {
-            setFOV(BehindYouConfig.backFOV)
-        }
-    }
-
-    private fun enterFront() {
-        frontToggled = true
-        previousFOV = getFOV()
-        setPerspective(1)
-        if (BehindYouConfig.changeFOV) {
-            setFOV(BehindYouConfig.frontFOV)
-        }
-    }
-
-    private fun resetBack() {
-        backToggled = false
-        setPerspective(
-            previousPerspective
-        )
-        setFOV(previousFOV)
-    }
-
-    private fun resetFront() {
-        frontToggled = false
-        setPerspective(
-            previousPerspective
-        )
-        setFOV(previousFOV)
-    }
-
-    private fun resetAll() {
-        if (frontToggled) {
-            resetFront()
-        }
-        if (backToggled) {
-            resetBack()
-        }
-    }
-
-    fun setPerspective(value: Int) {
-        if (vPerspective == value) return
-        previousPerspective = vPerspective
-        vPerspective = value
-
-        if (value == 0) {
-            to = 0.3f
-            if (!BehindYouConfig.animation) {
-                mc.gameSettings.thirdPersonView = 0
-                realPerspective = 0
-                mc.renderGlobal.setDisplayListEntitiesDirty()
-            }
-        } else {
-            to = distance
-            mc.gameSettings.thirdPersonView = value
-            realPerspective = value
-            mc.renderGlobal.setDisplayListEntitiesDirty()
-            animation = DummyAnimation(0.3f)
-        }
-    }
-
-    private fun getFOV() = mc.gameSettings.fovSetting
-
-    private fun setFOV(value: Number) {
-        mc.gameSettings.fovSetting = value.toFloat()
-    }
-
-    @Command(value = ["behindyou", "behindyouv3"], description = "Open the BehindYou config GUI.")
-    class BehindYouCommand {
-        @Command
-        fun main() {
-            BehindYouConfig.openUI()
-        }
     }
 }

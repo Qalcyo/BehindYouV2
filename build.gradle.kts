@@ -1,7 +1,6 @@
 @file:Suppress("UnstableApiUsage", "PropertyName")
 
 import dev.deftu.gradle.utils.GameSide
-import dev.deftu.gradle.utils.MinecraftVersion
 
 plugins {
     java
@@ -54,5 +53,13 @@ dependencies {
             // 1.16.5+
             modImplementation("net.fabricmc.fabric-api:fabric-api:${mcData.dependencies.fabric.fabricApiVersion}")
         }
+    }
+}
+
+sourceSets {
+    val dummy by creating
+    main {
+        compileClasspath += dummy.output
+        output.setResourcesDir(java.classesDirectory)
     }
 }

@@ -13,7 +13,7 @@ public class Mixin_EntityRendererSetFOVLevel {
         return BehindYou.INSTANCE.isFinished() ? instance.thirdPersonView : 1;
     }
 
-    @ModifyVariable(method = "orientCamera", at = @At(value = "STORE"), ordinal = 3)
+    @ModifyVariable(method = "orientCamera", at = @At(value = "STORE", ordinal = 0), ordinal = 3)
     private double set(double z, float partialTicks) {
         return BehindYou.INSTANCE.getLevel(z, partialTicks);
     }
